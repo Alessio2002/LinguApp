@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ionian Language Tasks: Orthography and Grammar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f7f7f7;
+      }
+      .card {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        border-radius: 1rem;
+      }
+      .correct-answer {
+        background-color: #d1fae5;
+      }
+      .incorrect-answer {
+        background-color: #fee2e2;
+      }
+      .btn-primary {
+        transition: transform 0.1s;
+      }
+      .btn-primary:hover {
+        transform: translateY(-1px);
+      }
+    </style>
+  </head>
+  <body class="p-4 md:p-8 min-h-screen flex items-center justify-center">
+    <div id="app" class="w-full max-w-2xl">
+      <header class="text-center mb-8">
+        <h1 class="text-4xl font-extrabold text-blue-900 mb-2">
+          Lingua Ioniâna Practice
+        </h1>
+        <p class="text-lg text-gray-600">
+          Orthography and Sentence Construction Tasks
+        </p>
+      </header>
+
+      <div id="task-container" class="card bg-white p-6 md:p-8">
+        <!-- Task content -->
+        <div id="task-progress" class="mb-4 text-center">
+          <span class="text-sm font-semibold text-blue-700"
+            >Task <span id="current-task-number">1</span> of 10</span
+          >
+        </div>
+        <div id="question-area">
+          <!-- Question and input/options -->
+        </div>
+        <div id="message-box" class="mt-4 p-3 rounded-lg text-sm hidden"></div>
+      </div>
+
+      <div class="flex justify-between mt-6 space-x-4">
+        <button
+          id="check-btn"
+          class="flex-1 bg-blue-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-blue-700 btn-primary"
+          onclick="checkAnswer()"
+        >
+          Check Answer
+        </button>
+        <button
+          id="next-btn"
+          class="flex-1 bg-gray-400 text-white font-bold py-3 px-6 rounded-xl hover:bg-gray-500 btn-primary"
+          onclick="loadNextTask()"
+          disabled
+        >
+          Next Task
+        </button>
+      </div>
+
+      <div id="score-summary" class="card bg-white p-6 md:p-8 mt-8 hidden">
+        <h2 class="text-2xl font-bold text-blue-800 mb-4 text-center">
+          Summary
+        </h2>
+        <p
+          id="final-score"
+          class="text-3xl font-extrabold text-center mb-4"
+        ></p>
+        <p id="score-message" class="text-center text-gray-700"></p>
+      </div>
+    </div>
+
+    <script>
+      // LogicEngline.js and App.js combined below
+
+      const tasks = [
+        // Task 1: Vowel Distinction (MC) - Combines first 5 sub-tasks
+        {
+          id: "T1",
+          type: "MC",
+          question:
+            "Choose the correct spelling for the Ionian formal singular pronoun 'You (formal, sg.)', following orthography rules:",
+          options: ["Lei", "Lêi"],
+          answer: "Lei",
+          explanation:
+            "The correct spelling for the formal singular pronoun is Lei, as established in the orthography, not Lêi.",
+        },
+        // Task 2: Diacritic Placement (FILL) - Uses the most complex example
+        {
+          id: "T2",
+          type: "FILL",
+          question:
+            "Complete the Ionian word for 'Trillion' (1,000,000,000,000) by filling the blank with the correct historical vowel and diacritic combination: Trili__n",
+          target: "ôn",
+          explanation:
+            "The correct spelling is Triliôn, where the 'ô' marks the historical long vowel sound.",
+        },
+        // Task 3: Conjugation (FILL) - We (Noi) - Uses -amo for -itar verbs
+        {
+          id: "T3",
+          type: "FILL",
+          question:
+            "Complete the present indicative conjugation for 'Noi' (We) of **Habitar** (to live/dwell): Noi habit____",
+          target: "amo",
+          explanation:
+            "For verbs ending in -itar like Habitar, the first-person plural ending is -amo (Noi habitamo).",
+        },
+        // Task 4: Definite Articles (MC) - F.S.
+        {
+          id: "T4",
+          type: "MC",
+          question:
+            "Choose the correct definite article for **fôlia** (Feminine, singular - *the leaf*):",
+          options: ["Lu", "La", "Li"],
+          answer: "La",
+          explanation:
+            "LA is the correct definite article for feminine singular nouns (La fôlia).",
+        },
+        // Task 5: Articulated Prepositions (FILL) - Di + La
+        {
+          id: "T5",
+          type: "FILL",
+          question:
+            "Translate 'of the leaf' using the correct articulated preposition (Di + La): ____ fôlia",
+          target: "Dila",
+          explanation:
+            "The articulated preposition for 'of the' (Di + La) is contracted to DILA.",
+        },
+        // Task 6: Simple Translation (SENTENCE) - Uses Le pân
+        {
+          id: "T6",
+          type: "SENTENCE",
+          question:
+            "Translate: 'We eat the bread.' (Use: magnar - to eat, pân - bread (masculine singular))",
+          target: "Noi magniamo Le pân",
+          explanation:
+            "The translation is 'Noi magniamo Le pân'. (Subject: Noi + Verb: magniamo + Article: Le + Object: pân). 'Pân' is the masculine singular form of bread, which uses the definite article 'Le'.",
+        },
+        // Task 7: Auxiliary Selection (MC) - Verbs of motion
+        {
+          id: "T7",
+          type: "MC",
+          question:
+            "Which auxiliary verb is used to form compound tenses for the verb of motion **venîr** (to come)?",
+          options: ["Esser", "Aver"],
+          answer: "Esser",
+          explanation:
+            "Intransitive verbs of motion, like 'venîr', take the auxiliary 'Esser' (to be) in compound tenses (e.g., Jo sô venîdo).",
+        },
+        // Task 8: Negative Reflexive Sentence (SENTENCE)
+        {
+          id: "T8",
+          type: "SENTENCE",
+          question:
+            "Form the negative reflexive sentence in Ionian for: 'I do not wash myself.' (Use: lavar - to wash, mi - reflexive pronoun)",
+          target: "Jo non mi lavo",
+          explanation:
+            "The word order is: Subject (Jo) + Negation (non) + Reflexive Pronoun (mi) + Verb (lavo).",
+        },
+        // Task 9: Incorporating Numbers
+        {
+          id: "T9",
+          type: "SENTENCE",
+          question:
+            "Translate: 'Seven dogs sleep.' (Use: Sete - seven, câni - dogs (Masc. Pl.), dormir - to sleep. Note the number form **Sete**.)",
+          target: "sete câni dormiono",
+          explanation:
+            "The translation uses **Sete** for seven, the masculine plural noun **câni** for dogs, and the third-person plural conjugation **dormiono** for the verb 'dormir' (to sleep). The form **Sete** is used for the cardinal number when it is not subject to apocope or paragoge.",
+        },
+        // Task 10: Full Sentence Translation (SENTENCE)
+        {
+          id: "T10",
+          type: "SENTENCE",
+          question:
+            "Translate: 'The beasts of the house are good.' (Use: bestie - beasts (feminine plural), câsa - house (feminine singular), bône - good (feminine plural adjective))",
+          target: "Le bestie dila câsa sôn bône",
+          explanation:
+            "Le (Feminine Pl. Article) + bestie + dila (Di + La) + câsa + sôn (Esser Pl. Verb) + bône (feminine plural adjective).",
+        },
+      ];
+
+      let currentTaskIndex = 0;
+      let score = 0;
+      let isAnswerChecked = false;
+
+      document.addEventListener("DOMContentLoaded", () => {
+        loadTask(currentTaskIndex);
+      });
+
+      function loadTask(index) {
+        const task = tasks[index];
+        const container = document.getElementById("question-area");
+        const messageBox = document.getElementById("message-box");
+        const checkBtn = document.getElementById("check-btn");
+        const nextBtn = document.getElementById("next-btn");
+        const currentTaskNumber = document.getElementById(
+          "current-task-number"
+        );
+
+        if (!task) {
+          displayFinalScore();
+          return;
+        }
+
+        // Reset state
+        isAnswerChecked = false;
+        messageBox.classList.add("hidden");
+        messageBox.textContent = "";
+        container.innerHTML = "";
+        nextBtn.disabled = true;
+        nextBtn.classList.remove("bg-blue-600", "hover:bg-blue-700");
+        nextBtn.classList.add("bg-gray-400", "hover:bg-gray-500");
+        checkBtn.disabled = false;
+        checkBtn.classList.remove("opacity-50");
+        currentTaskNumber.textContent = index + 1;
+
+        // Render Question
+        let html = `<p class="text-xl font-medium text-gray-800 mb-6">${task.question}</p>`;
+
+        // Render Input based on task type
+        if (task.type === "MC") {
+          html += '<div class="space-y-3">';
+          task.options.forEach((option, i) => {
+            html += `
+                        <label class="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition duration-150">
+                            <input type="radio" name="answer" value="${option}" class="form-radio text-blue-600 h-5 w-5" data-option-id="${i}">
+                            <span class="ml-3 text-lg text-gray-700">${option}</span>
+                        </label>
+                    `;
+          });
+          html += "</div>";
+        } else if (task.type === "FILL" || task.type === "SENTENCE") {
+          const placeholder =
+            task.type === "FILL"
+              ? "Type the missing part"
+              : "Type the full Ionian sentence";
+          html += `
+                    <input type="text" id="user-input" placeholder="${placeholder}"
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-lg">
+                    ${
+                      task.type === "SENTENCE"
+                        ? '<p class="text-sm text-gray-500 mt-2">Punctuation is not required for translation tasks.</p>'
+                        : ""
+                    }
+                `;
+        }
+
+        container.innerHTML = html;
+      }
+
+      function checkAnswer() {
+        if (isAnswerChecked) return;
+
+        const task = tasks[currentTaskIndex];
+        const messageBox = document.getElementById("message-box");
+        const checkBtn = document.getElementById("check-btn");
+        const nextBtn = document.getElementById("next-btn");
+
+        let userAnswer;
+        let isCorrect = false;
+
+        if (task.type === "MC") {
+          const selected = document.querySelector(
+            'input[name="answer"]:checked'
+          );
+          if (!selected) {
+            messageBox.textContent = "Please select an option before checking.";
+            messageBox.className =
+              "mt-4 p-3 rounded-lg text-sm bg-yellow-100 text-yellow-800";
+            messageBox.classList.remove("hidden");
+            return;
+          }
+          userAnswer = selected.value;
+          if (userAnswer === task.answer) {
+            isCorrect = true;
+            selected.parentElement.classList.add(
+              "correct-answer",
+              "border-green-500"
+            );
+          } else {
+            selected.parentElement.classList.add(
+              "incorrect-answer",
+              "border-red-500"
+            );
+            // Detection and highlighting of correct answers
+            document
+              .querySelector(`input[value="${task.answer}"]`)
+              .parentElement.classList.add(
+                "correct-answer",
+                "border-green-500"
+              );
+          }
+          document
+            .querySelectorAll('input[name="answer"]')
+            .forEach((input) => (input.disabled = true));
+        } else if (task.type === "FILL" || task.type === "SENTENCE") {
+          userAnswer = document.getElementById("user-input").value.trim();
+          const sanitizedAnswer = userAnswer
+            .toLowerCase()
+            .replace(/[^a-z0-9\sôâêîûîôâ]/g, "")
+            .replace(/\s+/g, " ");
+
+          const sanitizedTarget = task.target
+            .toLowerCase()
+            .replace(/[^a-z0-9\sôâêîûîôâ]/g, "")
+            .replace(/\s+/g, " ");
+
+          if (sanitizedAnswer === sanitizedTarget) {
+            isCorrect = true;
+            document
+              .getElementById("user-input")
+              .classList.add("border-green-500", "bg-green-50");
+          } else {
+            document
+              .getElementById("user-input")
+              .classList.add("border-red-500", "bg-red-50");
+          }
+          document.getElementById("user-input").disabled = true;
+        }
+
+        // Feedback
+        isAnswerChecked = true;
+        checkBtn.disabled = true;
+        checkBtn.classList.add("opacity-50");
+        nextBtn.disabled = false;
+        nextBtn.classList.remove("bg-gray-400", "hover:bg-gray-500");
+        nextBtn.classList.add("bg-blue-600", "hover:bg-blue-700");
+
+        if (isCorrect) {
+          score++;
+          messageBox.innerHTML = `
+                    <p class="font-bold text-green-800">Correct! Well done, Alessio.</p>
+                    <p class="mt-1 text-green-700">Explanation: ${task.explanation}</p>
+                `;
+          messageBox.className =
+            "mt-4 p-3 rounded-lg text-sm bg-green-100 text-green-800";
+        } else {
+          let feedbackText = `<p class="font-bold text-red-800">Not quite.</p>`;
+          if (task.type === "FILL" || task.type === "SENTENCE") {
+            feedbackText += `<p class="mt-1 text-red-700">The correct answer was: <span class="font-semibold">${task.target}</span></p>`;
+          }
+          feedbackText += `<p class="mt-1 text-red-700">Explanation: ${task.explanation}</p>`;
+
+          messageBox.innerHTML = feedbackText;
+          messageBox.className =
+            "mt-4 p-3 rounded-lg text-sm bg-red-100 text-red-800";
+        }
+        messageBox.classList.remove("hidden");
+      }
+
+      function loadNextTask() {
+        currentTaskIndex++;
+        loadTask(currentTaskIndex);
+      }
+
+      function displayFinalScore() {
+        const taskContainer = document.getElementById("task-container");
+        const buttonContainer = document.querySelector(".flex.justify-between");
+        const scoreSummary = document.getElementById("score-summary");
+        const finalScoreElement = document.getElementById("final-score");
+        const scoreMessageElement = document.getElementById("score-message");
+        const totalTasks = tasks.length;
+
+        taskContainer.classList.add("hidden");
+        if (buttonContainer) buttonContainer.classList.add("hidden");
+        scoreSummary.classList.remove("hidden");
+
+        const percentage = Math.round((score / totalTasks) * 100);
+
+        finalScoreElement.textContent = `You scored ${score} out of ${totalTasks} (${percentage}%)`;
+
+        let message;
+        if (percentage === 100) {
+          message =
+            "Fantastico! A perfect score. Your Ionian grammar and orthography are impeccable.";
+          finalScoreElement.classList.add("text-green-600");
+        } else if (percentage >= 70) {
+          message =
+            "Molto bene! A strong performance. Just a little review on apocope and articulated prepositions and you'll master it.";
+          finalScoreElement.classList.add("text-yellow-600");
+        } else {
+          message =
+            "Non male. A good start. Review the rules for historical vowel markers and auxiliary verb usage. Try again to reinforce the concepts!";
+          finalScoreElement.classList.add("text-red-600");
+        }
+        scoreMessageElement.textContent = message;
+      }
+    </script>
+  </body>
+</html>
