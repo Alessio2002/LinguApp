@@ -10,6 +10,11 @@ const confirmBtn = document.getElementById("confirm-btn");
 const nextBtn = document.getElementById("next-btn");
 const actionBarEl = document.getElementById("action-bar");
 const messageAreaEl = document.getElementById("message-area");
+// NEW DOM Elements for Hint System
+const hintBtn = document.getElementById("hint-btn");
+const hintModalEl = document.getElementById("hint-modal");
+const hintContentEl = document.getElementById("hint-content");
+const hintCloseBtn = document.getElementById("hint-close-btn");
 
 let currentCorrectAnswer = null; // Used for MCQ/Translate
 let currentCorrectSentence = []; // Used for Sentence Builder
@@ -26,10 +31,57 @@ function updateProgress() {
   accuracyScoreEl.textContent = `${LogicEngine.getAccuracyScore()}/3`;
 }
 
+// NEW FUNCTION: Displays the hint modal with relevant content
+function showHint(step) {
+  let hintText = "No specific hint available for this question type.";
+
+  // Determine hint content based on step type
+  if (
+    step.type === "mcq" ||
+    step.type === "translate" ||
+    step.type === "conjugation"
+  ) {
+    // For simple selection/input, offer a reminder of the core rule
+    hintText = `
+        <p class="font-bold mb-2">Remember the basics:</p>
+        <ul class="list-disc list-inside ml-4 text-gray-700">
+            <li>Check the ${step.questionType} rules you reviewed.</li>
+            <li>For conjugation, recall the subject pronoun (**${
+              step.pronoun || "Tu"
+            }**) and the verb form (**${step.verb || "Esser"}**).</li>
+        </ul>
+    `;
+  } else if (step.type === "sentence_builder") {
+    // For sentence builder, offer word order guidance
+    hintText = `
+        <p class="font-bold mb-2">Sentence Builder Hint:</p>
+        <p class="mb-3">Ionian typically follows a **Subject-Verb-Object (SVO)** word order.</p>
+        <p class="text-sm text-gray-600">Think: **[Subject]** + **[Verb]** + **[Object/Prepositional Phrase]**.</p>
+        <ul class="list-disc list-inside ml-4 text-gray-700 mt-2">
+            <li>Ensure your verb is correctly conjugated for the subject.</li>
+            <li>Articles (e.g., 'le', 'nil') usually precede the noun.</li>
+        </ul>
+    `;
+  }
+
+  hintContentEl.innerHTML = hintText;
+  hintModalEl.classList.remove("hidden");
+}
+
+// NEW FUNCTION: Hides the hint modal
+function hideHint() {
+  hintModalEl.classList.add("hidden");
+}
+
+// Bind the hint button listeners
+hintBtn.addEventListener("click", () => showHint(LogicEngine.getCurrentStep()));
+hintCloseBtn.addEventListener("click", hideHint);
+
 function displayInfoStep(step) {
   questionAreaEl.innerHTML = "";
   answerSelectionEl.innerHTML = "";
   confirmBtn.classList.add("hidden");
+  hintBtn.classList.add("hidden"); // Hide hint for info steps
 
   // Structure the information screen
   lessonModuleEl.innerHTML = `
@@ -64,6 +116,7 @@ function displayMCQ(step) {
   });
 
   confirmBtn.classList.remove("hidden");
+  hintBtn.classList.remove("hidden"); // Show hint for questions
   nextBtn.classList.add("hidden");
   confirmBtn.disabled = true;
 }
@@ -123,6 +176,7 @@ function displaySentenceBuilder(step) {
     const shuffledOptions = [...step.options].sort(() => Math.random() - 0.5);
 
     // Use a temporary array to track which words from the options are still available
+    // NOTE: This logic needs to be robust for duplicate words, but using array removal (splice) is a common quick method.
     const availableWords = [...step.options];
     assembledSentence.forEach((usedWord) => {
       const index = availableWords.indexOf(usedWord);
@@ -152,6 +206,7 @@ function displaySentenceBuilder(step) {
   renderWordBank();
 
   confirmBtn.classList.remove("hidden");
+  hintBtn.classList.remove("hidden"); // Show hint for questions
   nextBtn.classList.add("hidden");
   confirmBtn.disabled = true;
 }
@@ -186,6 +241,9 @@ function checkAnswer() {
     currentCorrectAnswer = currentCorrectSentence.join(" "); // For display in feedback
   }
 
+  // FIX: Ensure the hint modal is closed when the user confirms their answer
+  hideHint();
+
   // Visual Feedback
   messageAreaEl.classList.remove(
     "hidden",
@@ -193,6 +251,7 @@ function checkAnswer() {
     "message-incorrect"
   );
   confirmBtn.classList.add("hidden");
+  hintBtn.classList.add("hidden"); // Hide hint after confirming
   nextBtn.classList.remove("hidden");
 
   if (isCorrect) {
@@ -222,6 +281,8 @@ function checkAnswer() {
 }
 
 function renderStep() {
+  hideHint(); // Always hide hint when rendering a new step
+
   if (LogicEngine.getAccuracyScore() === 0) {
     LogicEngine.resetLesson();
     displayInfoStep({
@@ -283,6 +344,9 @@ function handleNext() {
 }
 
 function displayLessonComplete() {
+  // FIX: Ensure the hint modal is closed on completion
+  hideHint();
+
   lessonModuleEl.innerHTML = `
         <h1 class="text-2xl font-bold mb-4">Module Review Complete! 🎉</h1>
         <p class="text-gray-700">You have successfully mastered Module 1 of Ionian. Your final accuracy score was ${LogicEngine.getAccuracyScore()}/3.</p>
@@ -291,6 +355,7 @@ function displayLessonComplete() {
   answerSelectionEl.innerHTML = "";
   confirmBtn.classList.add("hidden");
   nextBtn.classList.add("hidden");
+  hintBtn.classList.add("hidden");
 
   actionBarEl.innerHTML =
     '<button onclick="LogicEngine.resetLesson(); renderStep();" class="w-full p-3 bg-gray-200 text-gray-800 font-bold rounded-md hover:bg-gray-300 transition duration-200">Start Next Module / Return to Menu</button>';
@@ -299,6 +364,12 @@ function displayLessonComplete() {
 // --- Event Listeners ---
 confirmBtn.addEventListener("click", checkAnswer);
 nextBtn.addEventListener("click", handleNext);
+// Note: Hint button listeners are added inside showHint/hideHint functions
 
 // --- Initialisation ---
-document.addEventListener("DOMContentLoaded", renderStep);
+document.addEventListener("DOMContentLoaded", () => {
+  if (hintModalEl) {
+    hideHint();
+  }
+  renderStep();
+});
