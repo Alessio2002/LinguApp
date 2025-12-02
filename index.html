@@ -6,6 +6,7 @@
     <title>Ionian Language Tasks: Orthography and Grammar</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+      /* --- Global & Utility Styles --- */
       body {
         font-family: "Inter", sans-serif;
         background-color: #f7f7f7;
@@ -17,9 +18,11 @@
       }
       .correct-answer {
         background-color: #d1fae5;
+        border-color: #10b981 !important; /* Tailwind green-500 */
       }
       .incorrect-answer {
         background-color: #fee2e2;
+        border-color: #ef4444 !important; /* Tailwind red-500 */
       }
       .btn-primary {
         transition: transform 0.1s;
@@ -27,13 +30,95 @@
       .btn-primary:hover {
         transform: translateY(-1px);
       }
+
+      /* --- Lesson Module Specific Styles --- */
+      .answer-tile {
+        padding: 10px 15px;
+        border: 2px solid #ccc;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.1s, border-color 0.1s;
+        margin-bottom: 8px;
+      }
+
+      .answer-tile:hover {
+        background-color: #f0f0f0;
+      }
+
+      .answer-tile.selected {
+        background-color: #e6f7ff;
+        border-color: #007bff;
+        font-weight: bold;
+      }
+
+      /* --- HINT MODAL STYLES (Includes the Specific Fix) --- */
+
+      /* Modal Overlay */
+      #hint-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(
+          0,
+          0,
+          0,
+          0.5
+        ); /* Semi-transparent black overlay */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      }
+
+      /* CRITICAL FIX: Target the ID and the class to force hide */
+      /* This overrides 'display: flex' set above when the 'hidden' class is applied. */
+      #hint-modal.hidden {
+        display: none !important;
+      }
+
+      /* Modal Content Box */
+      #hint-box {
+        background-color: white;
+        padding: 30px;
+        border-radius: 8px;
+        max-width: 400px;
+        width: 90%;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        position: relative;
+      }
+
+      #hint-box h4 {
+        font-size: 1.4rem;
+        color: #00579f; /* A blue tone */
+        margin-bottom: 15px;
+        border-bottom: 2px solid #e6b800; /* A yellow tone */
+        padding-bottom: 5px;
+      }
+
+      /* Close button */
+      #hint-close-btn {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #aaa;
+      }
+      #hint-close-btn:hover {
+        color: #172a3a;
+      }
+      /* --- END HINT STYLES --- */
     </style>
   </head>
   <body class="p-4 md:p-8 min-h-screen flex items-center justify-center">
     <div id="app" class="w-full max-w-2xl">
       <header class="text-center mb-8">
         <h1 class="text-4xl font-extrabold text-blue-900 mb-2">
-          Lingua Ioniâna Practice
+          Lingua Ioniana Practice
         </h1>
         <p class="text-lg text-gray-600">
           Orthography and Sentence Construction Tasks
@@ -41,30 +126,32 @@
       </header>
 
       <div id="task-container" class="card bg-white p-6 md:p-8">
-        <!-- Task content -->
         <div id="task-progress" class="mb-4 text-center">
           <span class="text-sm font-semibold text-blue-700"
             >Task <span id="current-task-number">1</span> of 10</span
           >
         </div>
-        <div id="question-area">
-          <!-- Question and input/options -->
-        </div>
+        <div id="question-area"></div>
         <div id="message-box" class="mt-4 p-3 rounded-lg text-sm hidden"></div>
       </div>
 
       <div class="flex justify-between mt-6 space-x-4">
         <button
+          id="hint-btn"
+          class="w-1/4 bg-yellow-500 text-white font-bold py-3 px-3 rounded-xl hover:bg-yellow-600 btn-primary"
+        >
+          Hint 💡
+        </button>
+
+        <button
           id="check-btn"
           class="flex-1 bg-blue-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-blue-700 btn-primary"
-          onclick="checkAnswer()"
         >
           Check Answer
         </button>
         <button
           id="next-btn"
           class="flex-1 bg-gray-400 text-white font-bold py-3 px-6 rounded-xl hover:bg-gray-500 btn-primary"
-          onclick="loadNextTask()"
           disabled
         >
           Next Task
@@ -83,112 +170,132 @@
       </div>
     </div>
 
+    <div id="hint-modal" class="hidden">
+      <div id="hint-box">
+        <h4>💡 Hint</h4>
+        <div id="hint-content"></div>
+        <button id="hint-close-btn">&times;</button>
+      </div>
+    </div>
+
     <script>
-      // LogicEngline.js and App.js combined below
+      // --- Logic and App combined ---
 
       const tasks = [
-        // Task 1: Vowel Distinction (MC) - Combines first 5 sub-tasks
+        // Task 1: Vowel Distinction (MC)
         {
           id: "T1",
           type: "MC",
           question:
-            "Choose the correct spelling for the Ionian formal singular pronoun 'You (formal, sg.)', following orthography rules:",
-          options: ["Lei", "Lêi"],
-          answer: "Lei",
+            "The Ionian stress pattern falls on the penultimate vowel (one before last)." +
+            " The Ionian penultimate vowel does NOT get stressed if a diphthong (a combination of two vowels) is present." +
+            " - Where does the stress fall on the Ionian formal singular pronoun 'Lei' meaning 'You'?:",
+          options: ["I", "E", "No stress"],
+          answer: "No stress",
           explanation:
-            "The correct spelling for the formal singular pronoun is Lei, as established in the orthography, not Lêi.",
+            "The correct answer is 'No stress' because 'Lei' is pronounced with a neutral vowel sound without stress on either vowel as the 'ei' functions as a diphthong, blocking the stress.",
+          hint: "Remember the rule about diphthongs and stress placement. Since 'ei' is a diphthong, what happens to the stress?",
         },
-        // Task 2: Diacritic Placement (FILL) - Uses the most complex example
+        // Task 2: Diacritic Placement
         {
           id: "T2",
           type: "FILL",
           question:
-            "Complete the Ionian word for 'Trillion' (1,000,000,000,000) by filling the blank with the correct historical vowel and diacritic combination: Trili__n",
-          target: "ôn",
+            "What letter does the stress fall in on the Ionian word for 'Trillion' (1,000,000,000,000): 'Trilione', if the stress is on the penultimate vowel?",
+          target: "o",
           explanation:
-            "The correct spelling is Triliôn, where the 'ô' marks the historical long vowel sound.",
+            "The correct letter is 'o', as it is in the penultimate position or the one before the last vowel.",
+          hint: "Penultimate means 'second to last'. Identify the second to last vowel in the word 'Trilione'.",
         },
-        // Task 3: Conjugation (FILL) - We (Noi) - Uses -amo for -itar verbs
+        // Task 3: Conjugation (FILL)
         {
           id: "T3",
           type: "FILL",
           question:
-            "Complete the present indicative conjugation for 'Noi' (We) of **Habitar** (to live/dwell): Noi habit____",
+            "If the regular present indicative conjugation for 'Noi' (We) is '-iamo', what following ending is given to the verb 'Habitar' (to live/dwell) due to the '-itar' ending? Hint: Habit___",
           target: "amo",
           explanation:
             "For verbs ending in -itar like Habitar, the first-person plural ending is -amo (Noi habitamo).",
+          hint: "Verbs ending in -itar have an alternative conjugation form for the 'Noi' form, '-amo' instead of '-iamo'.",
         },
         // Task 4: Definite Articles (MC) - F.S.
         {
           id: "T4",
           type: "MC",
           question:
-            "Choose the correct definite article for **fôlia** (Feminine, singular - *the leaf*):",
-          options: ["Lu", "La", "Li"],
+            "If the typical femninine ending is -a, what is the correct definite article for 'folia'? (Feminine, singular - meaning, 'leaf'):",
+          options: ["Le", "Lu", "La", "Li"],
           answer: "La",
           explanation:
-            "LA is the correct definite article for feminine singular nouns (La fôlia).",
+            "La is the correct definite article for feminine singular nouns (La folia).",
+          hint: "Recall the definite article for Feminine Singular nouns.",
         },
         // Task 5: Articulated Prepositions (FILL) - Di + La
         {
           id: "T5",
           type: "FILL",
           question:
-            "Translate 'of the leaf' using the correct articulated preposition (Di + La): ____ fôlia",
+            "In Ionian the partitive Di is combined with the article. Hint: Dil (masc.) Dilu (neut.). Translate 'of the leaf' using the correct form of the feminine partitive article (Di + La): ____ folia",
           target: "Dila",
           explanation:
-            "The articulated preposition for 'of the' (Di + La) is contracted to DILA.",
+            "The feminine partitive article for 'of the' (Di + La) is contracted to 'dila'.",
+          hint: "The rule is: Preposition 'Di' + Article 'La' = Contraction. No spaces when conbining them.",
         },
-        // Task 6: Simple Translation (SENTENCE) - Uses Le pân
+        // Task 6: Simple Translation (SENTENCE)
         {
           id: "T6",
           type: "SENTENCE",
           question:
-            "Translate: 'We eat the bread.' (Use: magnar - to eat, pân - bread (masculine singular))",
-          target: "Noi magniamo Le pân",
+            "Translate: 'We eat the bread.' (Use: Noi - We, conjugate magnar - to eat, Le - the (definite article for masculine singular), pan - bread)",
+          target: "Noi magniamo le pan",
           explanation:
-            "The translation is 'Noi magniamo Le pân'. (Subject: Noi + Verb: magniamo + Article: Le + Object: pân). 'Pân' is the masculine singular form of bread, which uses the definite article 'Le'.",
+            "The translation is 'Noi magniamo le pan'. (Subject: Noi + Verb: magniamo (we eat) + Article: Le + Object: pan). 'Pan' is the masculine singular form of bread, which uses the definite article 'Le'.",
+          hint: "Ionian uses SVO (Subject-Verb-Object) order. Conjugate 'magnar' for 'Noi' - '-iamo'.",
         },
         // Task 7: Auxiliary Selection (MC) - Verbs of motion
         {
           id: "T7",
           type: "MC",
           question:
-            "Which auxiliary verb is used to form compound tenses for the verb of motion **venîr** (to come)?",
+            "Which auxiliary verb is used to form compound tenses for the verb of motion 'venir' (to come)? Hint: Choose between 'Esser' (to be) and 'Aver' (to have):",
           options: ["Esser", "Aver"],
           answer: "Esser",
           explanation:
-            "Intransitive verbs of motion, like 'venîr', take the auxiliary 'Esser' (to be) in compound tenses (e.g., Jo sô venîdo).",
+            "Intransitive verbs of motion, like 'venir', take the auxiliary 'Esser' (to be) in compound tenses (e.g., Jo so venido).",
+          hint: "Verbs of motion (like 'venir' - to come) require a specific auxiliary verb in compound tenses.",
         },
         // Task 8: Negative Reflexive Sentence (SENTENCE)
         {
           id: "T8",
           type: "SENTENCE",
           question:
-            "Form the negative reflexive sentence in Ionian for: 'I do not wash myself.' (Use: lavar - to wash, mi - reflexive pronoun)",
+            "Form the negative reflexive sentence in Ionian for: 'I do not wash myself.' (Use: jo - I, non - not, mi - myself (reflexive pronoun), lavar - to wash, conjugate for 'Jo' -o ending.)",
           target: "Jo non mi lavo",
           explanation:
             "The word order is: Subject (Jo) + Negation (non) + Reflexive Pronoun (mi) + Verb (lavo).",
+          hint: "Word order for negative reflexives: Subject + Non + Reflexive Pronoun + Verb.",
         },
         // Task 9: Incorporating Numbers
         {
           id: "T9",
           type: "SENTENCE",
           question:
-            "Translate: 'Seven dogs sleep.' (Use: Sete - seven, câni - dogs (Masc. Pl.), dormir - to sleep. Note the number form **Sete**.)",
-          target: "sete câni dormiono",
+            "Translate: 'Seven dogs sleep.' (Use: sete - seven, cani - dogs (Masc. Pl.), dormir - to sleep, conjugated with -iono due to -ir ending. Note the number form 'sete'.)",
+          target: "sete cani dormiono",
           explanation:
-            "The translation uses **Sete** for seven, the masculine plural noun **câni** for dogs, and the third-person plural conjugation **dormiono** for the verb 'dormir' (to sleep). The form **Sete** is used for the cardinal number when it is not subject to apocope or paragoge.",
+            "The translation uses 'Sete' for seven, the masculine plural noun cani - dogs, and the third-person plural conjugation 'dormiono' for the verb 'dormir' (to sleep).",
+          hint: "The subject 'cani' is third-person plural; ensure 'dormir' is conjugated correctly. '-iono' ending for -ir verbs in third-person plural.",
         },
         // Task 10: Full Sentence Translation (SENTENCE)
         {
           id: "T10",
           type: "SENTENCE",
           question:
-            "Translate: 'The beasts of the house are good.' (Use: bestie - beasts (feminine plural), câsa - house (feminine singular), bône - good (feminine plural adjective))",
-          target: "Le bestie dila câsa sôn bône",
+            "Translate: 'The beasts of the house are good.' (Use: Feminine pl. article + bestie - beasts (feminine plural) + feminine partitive article + casa - house (feminine singular), son - they are, bone - good (feminine plural adjective))",
+          target: "Le bestie dila casa son bone",
           explanation:
-            "Le (Feminine Pl. Article) + bestie + dila (Di + La) + câsa + sôn (Esser Pl. Verb) + bône (feminine plural adjective).",
+            "Le (Feminine Pl. Article) + bestie + dila (Di + La) + casa + son (Esser Pl. Verb) + bone (feminine plural adjective).",
+          hint: "Pay close attention to plural articles (Le) and the articulated preposition (Di + La).",
         },
       ];
 
@@ -196,7 +303,45 @@
       let score = 0;
       let isAnswerChecked = false;
 
+      // DOM Elements
+      const hintModalEl = document.getElementById("hint-modal");
+      const hintContentEl = document.getElementById("hint-content");
+      const hintBtn = document.getElementById("hint-btn");
+      const hintCloseBtn = document.getElementById("hint-close-btn"); // Get the close button
+      const checkBtn = document.getElementById("check-btn");
+      const nextBtn = document.getElementById("next-btn");
+
+      // NEW FUNCTIONS for Hint System
+      function showHint(task) {
+        if (!task || !task.hint) {
+          hintContentEl.innerHTML =
+            "<p>No specific hint available for this task.</p>";
+        } else {
+          hintContentEl.innerHTML = `<p>${task.hint}</p>`;
+        }
+        hintModalEl.classList.remove("hidden");
+      }
+
+      function hideHint() {
+        hintModalEl.classList.add("hidden");
+      }
+      // END NEW FUNCTIONS for Hint System
+
       document.addEventListener("DOMContentLoaded", () => {
+        // --- Event Listeners Binding ---
+        // BINDING FIX: Bind all necessary event listeners here after the DOM is guaranteed to be ready
+        hintBtn.addEventListener("click", () =>
+          showHint(tasks[currentTaskIndex])
+        );
+        hintCloseBtn.addEventListener("click", hideHint);
+        checkBtn.addEventListener("click", checkAnswer);
+        nextBtn.addEventListener("click", loadNextTask);
+
+        // --- Initialisation ---
+        // FIX: Ensure modal is hidden right away on DOM load before anything else runs.
+        if (hintModalEl) {
+          hideHint();
+        }
         loadTask(currentTaskIndex);
       });
 
@@ -226,6 +371,10 @@
         checkBtn.disabled = false;
         checkBtn.classList.remove("opacity-50");
         currentTaskNumber.textContent = index + 1;
+
+        // Hint visibility control: Show hint button for all question types
+        hintBtn.classList.remove("hidden");
+        hideHint(); // Ensure modal is closed when loading a new task
 
         // Render Question
         let html = `<p class="text-xl font-medium text-gray-800 mb-6">${task.question}</p>`;
@@ -272,6 +421,10 @@
         let userAnswer;
         let isCorrect = false;
 
+        // Hide hint button when checking answer
+        hintBtn.classList.add("hidden");
+        hideHint(); // FIX: Ensure modal is closed
+
         if (task.type === "MC") {
           const selected = document.querySelector(
             'input[name="answer"]:checked'
@@ -281,27 +434,20 @@
             messageBox.className =
               "mt-4 p-3 rounded-lg text-sm bg-yellow-100 text-yellow-800";
             messageBox.classList.remove("hidden");
+            // Re-show hint button if user didn't select an answer
+            hintBtn.classList.remove("hidden");
             return;
           }
           userAnswer = selected.value;
           if (userAnswer === task.answer) {
             isCorrect = true;
-            selected.parentElement.classList.add(
-              "correct-answer",
-              "border-green-500"
-            );
+            selected.parentElement.classList.add("correct-answer");
           } else {
-            selected.parentElement.classList.add(
-              "incorrect-answer",
-              "border-red-500"
-            );
+            selected.parentElement.classList.add("incorrect-answer");
             // Detection and highlighting of correct answers
             document
               .querySelector(`input[value="${task.answer}"]`)
-              .parentElement.classList.add(
-                "correct-answer",
-                "border-green-500"
-              );
+              .parentElement.classList.add("correct-answer");
           }
           document
             .querySelectorAll('input[name="answer"]')
@@ -342,7 +488,7 @@
         if (isCorrect) {
           score++;
           messageBox.innerHTML = `
-                    <p class="font-bold text-green-800">Correct! Well done, Alessio.</p>
+                    <p class="font-bold text-green-800">Correct! Well done!</p>
                     <p class="mt-1 text-green-700">Explanation: ${task.explanation}</p>
                 `;
           messageBox.className =
@@ -373,6 +519,9 @@
         const finalScoreElement = document.getElementById("final-score");
         const scoreMessageElement = document.getElementById("score-message");
         const totalTasks = tasks.length;
+
+        // Hide hint button at end screen
+        hintBtn.classList.add("hidden");
 
         taskContainer.classList.add("hidden");
         if (buttonContainer) buttonContainer.classList.add("hidden");
