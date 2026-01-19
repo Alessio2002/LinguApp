@@ -2,7 +2,7 @@
 
 /**
  * CORE IONIAN LANGUAGE DATA
- * This data is extracted from the 'Parlar Ioniâno' and 'Standard Ionian verb tables' documents.
+ * This data is extracted from the 'Parlar Ioniano' and 'Standard Ionian verb tables' documents.
  */
 const IonianData = {
   // Basic Pronunciation and Alphabet (used for Lesson 1)
@@ -20,15 +20,15 @@ const IonianData = {
   ],
   // Basic Vocabulary (Introduction)
   vocabulary: [
-    { ionian: "Salvê", english: "Hello", pronunciation: "[sal’ve]" },
+    { ionian: "Salve", english: "Hello", pronunciation: "[sal’ve]" },
     { ionian: "Vale", english: "Bye", pronunciation: "[va.le]" },
     {
-      ionian: "Ce vîderemo",
+      ionian: "Ce videremo",
       english: "See you later",
       pronunciation: "[t͡ʃe...]",
     },
     { ionian: "Sì", english: "Yes" },
-    { ionian: "Nôn", english: "No" },
+    { ionian: "Non", english: "No" },
     { ionian: "Pizze", english: "pizzas" },
     { ionian: "Aqua", english: "water" },
     { ionian: "le", english: "the" }, // Article for sentence builder
@@ -47,27 +47,27 @@ const IonianData = {
     },
     neuter: {
       // inanimate only
-      singular: ["-û", "consonant", "-e"], // (Citation: 1513)
+      singular: ["-u", "consonant", "-e"], // (Citation: 1513)
       plural: ["-a"], // Neuter merges with plural feminine form, but uses suffix -a (except for -e words) (Citation: 1517)
     },
   },
   // Irregular Verb: Esser (To be) - Present Tense
   esserPresent: {
-    Jo: "Sô", // I am
-    Tu: "Sê", // You are (informal singular)
-    "Lu/Ila": "E", // He/She/It is
+    Jo: "So", // I am
+    Tu: "Se", // You are (informal singular)
+    "Isso/Essa": "È", // He/She/It is
     Noi: "Sjamo", // We are
     Voi: "Este", // You are (informal plural)
-    "Ei/Lôr": "Sôn", // They are
+    "Ei/Lor": "Son", // They are
   },
   // Verb: Habitar (To live) - Present Tense (1st form conjugation)
   habitarPresent: {
     Jo: "Habito",
     Tu: "Habiti",
-    "Lu/Ila": "Habita",
+    "Isso/Essa": "Habita",
     Noi: "Habitamo",
     Voi: "Habitate",
-    "Ei/Lôr": "Habitano",
+    "Ei/Lor": "Habitano",
   },
   // Definite Articles (Citation: 1466, 1238)
   articles: {
@@ -159,8 +159,8 @@ const IonianLessons = [
         pronoun: "Tu", // You (singular informal)
         prompt:
           "Provide the correct conjugation of Esser (To be) for the pronoun Tu (You, informal singular):",
-        correctAnswer: "Sê",
-        options: ["Sô", "E", "Sjamo", "Sê"],
+        correctAnswer: "Sè",
+        options: ["So", "È", "Sjamo", "Sè"],
         questionType: "Grammar",
       },
       // Sentence Builder: Basic SVO
@@ -168,7 +168,7 @@ const IonianLessons = [
         type: "sentence_builder",
         prompt: 'Build the Ionian sentence: "I live."',
         correctSentence: ["Jo", "Habito"], // IonianData.habitarPresent.Jo
-        options: ["Habiti", "Jo", "Sô", "Habito"],
+        options: ["Habiti", "Jo", "So", "Habito"],
         questionType: "Sentence Construction",
       },
       // Sentence Builder: SVO with Prepositional Phrase
@@ -176,7 +176,7 @@ const IonianLessons = [
         type: "sentence_builder",
         prompt: 'Build the Ionian sentence: "They live in the water."',
         correctSentence: ["Ei", "Habitano", "nil", "Aqua"],
-        options: ["nel", "Ei", "Habiti", "Aqua", "Habitano", "nil"],
+        options: ["nil", "Ei", "Habiti", "Aqua", "Habitano", "nil"],
         questionType: "Sentence Construction",
         // Assuming 'nil' is used as a contraction for 'in the' for simplicity.
       },
@@ -185,7 +185,7 @@ const IonianLessons = [
         type: "sentence_builder",
         prompt: 'Build the Ionian sentence: "We have the pizzas."',
         correctSentence: ["Noi", "Avviamo", "le", "Pizze"],
-        options: ["Avviamo", "Noi", "Pizze", "la", "le", "Sôn"],
+        options: ["Avviamo", "Noi", "Pizze", "la", "le", "Son"],
         questionType: "Sentence Construction",
       },
       // END OF LESSON
