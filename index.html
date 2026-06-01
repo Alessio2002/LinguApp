@@ -114,15 +114,22 @@
       /* --- END HINT STYLES --- */
     </style>
   </head>
-  <body class="p-4 md:p-8 min-h-screen flex items-center justify-center">
-    <div id="app" class="w-full max-w-2xl">
-      <header class="text-center mb-8">
-        <h1 class="text-4xl font-extrabold text-blue-900 mb-2">
-          Lingua Ioniana Practice
-        </h1>
-        <p class="text-lg text-gray-600">
-          Orthography and Sentence Construction Tasks
-        </p>
+  <body class="p-4 md:p-8 min-h-screen flex flex-col items-center justify-start">
+    <div id="app" class="w-full max-w-2xl mt-4 md:mt-8">
+      
+      <!-- --- Header with integrated Menu Navigation --- -->
+      <header class="bg-blue-900 rounded-2xl p-6 text-white mb-8 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between shadow-md">
+        <div>
+          <h1 class="text-3xl font-extrabold mb-1">
+            Lingua Ioniana Practice
+          </h1>
+          <p class="text-sm text-blue-200">
+            Orthography and Sentence Construction Tasks
+          </p>
+        </div>
+        <a href="https://alessio2002.github.io/LinguApp-main-menu/" class="text-sm bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full font-semibold transition shrink-0 whitespace-nowrap self-stretch sm:self-auto text-center">
+          &larr; Retorna al Menu
+        </a>
       </header>
 
       <div id="task-container" class="card bg-white p-6 md:p-8">
@@ -171,7 +178,7 @@
         <div class="flex justify-center">
           <a href="https://alessio2002.github.io/LinguApp-main-menu/" 
              class="inline-block bg-blue-900 text-white font-bold py-3 px-8 rounded-xl hover:bg-blue-950 transition duration-200 text-center">
-             ← Return to Main Menu
+             &larr; Return to Main Menu
           </a>
         </div>
       </div>
@@ -287,8 +294,8 @@
           id: "T9",
           type: "SENTENCE",
           question:
-            "Translate: 'Seven dogs sleep.' (Use: sete - seven, cani - dogs (Masc. Pl.), dormir - to sleep, conjugated with -iono due to -ir ending. Note the number form 'sete'.)",
-          target: "sete cani dormiono",
+            "Translate: 'Seven dogs sleep.' (Use: setê - seven, cani - dogs (Masc. Pl.), dormir - to sleep, conjugated with -iono due to -ir ending. Note the number form 'setê'.)",
+          target: "Setê cani dormiono",
           explanation:
             "The translation uses 'Sete' for seven, the masculine plural noun cani - dogs, and the third-person plural conjugation 'dormiono' for the verb 'dormir' (to sleep).",
           hint: "The subject 'cani' is third-person plural; ensure 'dormir' is conjugated correctly. '-iono' ending for -ir verbs in third-person plural.",
@@ -314,11 +321,11 @@
       const hintModalEl = document.getElementById("hint-modal");
       const hintContentEl = document.getElementById("hint-content");
       const hintBtn = document.getElementById("hint-btn");
-      const hintCloseBtn = document.getElementById("hint-close-btn"); // Get the close button
+      const hintCloseBtn = document.getElementById("hint-close-btn"); 
       const checkBtn = document.getElementById("check-btn");
       const nextBtn = document.getElementById("next-btn");
 
-      // NEW FUNCTIONS for Hint System
+      // Functions for Hint System
       function showHint(task) {
         if (!task || !task.hint) {
           hintContentEl.innerHTML =
@@ -332,11 +339,9 @@
       function hideHint() {
         hintModalEl.classList.add("hidden");
       }
-      // END NEW FUNCTIONS for Hint System
 
       document.addEventListener("DOMContentLoaded", () => {
-        // --- Event Listeners Binding ---
-        // BINDING FIX: Bind all necessary event listeners here after the DOM is guaranteed to be ready
+        // Event Listeners Binding
         hintBtn.addEventListener("click", () =>
           showHint(tasks[currentTaskIndex])
         );
@@ -344,8 +349,7 @@
         checkBtn.addEventListener("click", checkAnswer);
         nextBtn.addEventListener("click", loadNextTask);
 
-        // --- Initialisation ---
-        // FIX: Ensure modal is hidden right away on DOM load before anything else runs.
+        // Initialisation
         if (hintModalEl) {
           hideHint();
         }
@@ -379,9 +383,9 @@
         checkBtn.classList.remove("opacity-50");
         currentTaskNumber.textContent = index + 1;
 
-        // Hint visibility control: Show hint button for all question types
+        // Hint visibility control
         hintBtn.classList.remove("hidden");
-        hideHint(); // Ensure modal is closed when loading a new task
+        hideHint(); 
 
         // Render Question
         let html = `<p class="text-xl font-medium text-gray-800 mb-6">${task.question}</p>`;
@@ -428,9 +432,8 @@
         let userAnswer;
         let isCorrect = false;
 
-        // Hide hint button when checking answer
         hintBtn.classList.add("hidden");
-        hideHint(); // FIX: Ensure modal is closed
+        hideHint(); 
 
         if (task.type === "MC") {
           const selected = document.querySelector(
@@ -441,7 +444,6 @@
             messageBox.className =
               "mt-4 p-3 rounded-lg text-sm bg-yellow-100 text-yellow-800";
             messageBox.classList.remove("hidden");
-            // Re-show hint button if user didn't select an answer
             hintBtn.classList.remove("hidden");
             return;
           }
@@ -451,7 +453,6 @@
             selected.parentElement.classList.add("correct-answer");
           } else {
             selected.parentElement.classList.add("incorrect-answer");
-            // Detection and highlighting of correct answers
             document
               .querySelector(`input[value="${task.answer}"]`)
               .parentElement.classList.add("correct-answer");
@@ -519,6 +520,8 @@
         loadTask(currentTaskIndex);
       }
 
+      document.getElementById("final-score").classList.add("text-blue-900");
+
       function displayFinalScore() {
         const taskContainer = document.getElementById("task-container");
         const buttonContainer = document.querySelector(".flex.justify-between");
@@ -527,7 +530,6 @@
         const scoreMessageElement = document.getElementById("score-message");
         const totalTasks = tasks.length;
 
-        // Hide hint button at end screen
         hintBtn.classList.add("hidden");
 
         taskContainer.classList.add("hidden");
@@ -542,15 +544,15 @@
         if (percentage === 100) {
           message =
             "Fantastico! A perfect score. Your Ionian grammar and orthography are impeccable.";
-          finalScoreElement.classList.add("text-green-600");
+          finalScoreElement.className = "text-3xl font-extrabold text-center mb-4 text-green-600";
         } else if (percentage >= 70) {
           message =
             "Molto bene! A strong performance. Just a little review on apocope and articulated prepositions and you'll master it.";
-          finalScoreElement.classList.add("text-yellow-600");
+          finalScoreElement.className = "text-3xl font-extrabold text-center mb-4 text-yellow-600";
         } else {
           message =
             "Non male. A good start. Review the rules for historical vowel markers and auxiliary verb usage. Try again to reinforce the concepts!";
-          finalScoreElement.classList.add("text-red-600");
+          finalScoreElement.className = "text-3xl font-extrabold text-center mb-4 text-red-600";
         }
         scoreMessageElement.textContent = message;
       }
